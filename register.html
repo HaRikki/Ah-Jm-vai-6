@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register — AngKer SMM</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="cosmic-bg">
+    <div class="cosmic-inner" style="min-height:100vh;padding:16px;">
+      <header style="display:flex;align-items:center;gap:8px;">
+        <a href="/login.html"><img src="/images/logo-ak.png" width="42" height="42" alt="" /></a>
+        <span style="color:#fff;font-weight:700;">ANGKER SMM</span>
+      </header>
+      <div style="max-width:380px;margin:24px auto;">
+        <h1 class="auth-title" style="font-size:24px;">Create Account</h1>
+        <p class="auth-sub">Join AngKer SMM</p>
+        <div class="auth-card">
+          <form id="regForm">
+            <div class="field"><label>Username</label><input class="input" id="username" required minlength="3" maxlength="20" /></div>
+            <div class="field"><label>Email</label><input class="input" id="email" type="email" required /></div>
+            <div class="field"><label>Password</label><input class="input" id="password" type="password" required /></div>
+            <div class="field"><label>Confirm Password</label><input class="input" id="confirm" type="password" required /></div>
+            <button class="btn btn-primary" type="submit" id="submitBtn">Sign up</button>
+          </form>
+          <p class="text-center mt-4" style="color:rgba(255,255,255,0.85);font-size:13px;">
+            Already have an account? <a href="/login.html" style="color:#fff;font-weight:700;">Sign in</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script>
+    document.getElementById('regForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('confirm').value;
+      if (password !== confirm) return UI.toast('Passwords do not match', 'error');
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      const { ok, data } = await AK.api('/api/auth/register', {
+        method: 'POST',
+        body: {
+          username: document.getElementById('username').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          password,
+        },
+      });
+      btn.disabled = false;
+      if (!ok) return UI.toast(data.error || 'Registration failed', 'error');
+      UI.toast('Registration successful', 'success');
+      location.href = '/login.html';
+    });
+  </script>
+</body>
+</html>

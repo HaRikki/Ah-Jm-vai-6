@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Payments — Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <a href="/admin.html" style="color:var(--text);padding:6px;">←</a>
+    <div style="font-weight:700;">Payment Settings</div>
+  </header>
+  <main class="container">
+    <div class="panel">
+      <label><input type="checkbox" id="abaEnabled" /> Enable ABA</label>
+      <div class="field mt-4"><label>Base URL</label><input class="input" id="baseUrl" /></div>
+      <div class="field"><label>Merchant ID</label><input class="input" id="merchantId" /></div>
+      <div class="field"><label>Profile API Key</label><input class="input" id="apiKey" placeholder="Leave blank to keep existing" type="password" /></div>
+      <p id="keyHint" class="text-muted"></p>
+      <label class="mt-4"><input type="checkbox" id="bakongEnabled" /> Enable Bakong</label>
+      <button class="btn btn-primary mt-4" id="save">Save</button>
+    </div>
+  </main>
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script>
+    UI.initTheme();
+    if (!UI.requireLogin()) throw 0;
+    (async () => {
+      const { data } = await AK.api('/api/admin/payments');
+      document.getElementById('abaEnabled').checked = !!data.aba?.enabled;
+      document.getElementById('bakongEnabled').checked = !!data.bakong?.enabled;
+      document.getElementById('baseUrl').value = data.aba?.baseUrl || 'https://khmer-system.com';
+      document.getElementById('merchantId').value = data.aba?.merchantId || '';
+      if (data.aba?.hasApiKey) document.getElementById('keyHint').textContent = 'Saved: ' + data.aba.apiKeyMasked;
+    })();
+    document.getElementById('save').onclick = async () => {
+      const body = {
+        aba_enabled: document.getElementById('abaEnabled').checked,
+        bakong_enabled: document.getElementById('bakongEnabled').checked,
+        aba_base_url: document.getElementById('baseUrl').value,
+        aba_merchant_id: document.getElementById('merchantId').value,
+      };
+      const k = document.getElementById('apiKey').value.trim();
+      if (k) body.aba_api_key = k;
+      const { ok, data } = await AK.api('/api/admin/payments', { method: 'POST', body });
+      UI.toast(ok ? 'Saved' : (data.error || 'Failed'), ok ? 'success' : 'error');
+    };
+  </script>
+</body>
+</html>

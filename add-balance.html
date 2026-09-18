@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Add Balance — AngKer SMM</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <a href="/dashboard.html" style="color:var(--text);padding:6px;">←</a>
+    <img class="logo" src="/images/logo-ak.png" alt="" />
+    <div style="font-weight:700;">Add Balance</div>
+    <div class="balance-pill"><span id="headerBalance">$0.00</span></div>
+  </header>
+  <main class="container">
+    <div id="formBox">
+      <div class="field"><label>Amount (USD)</label><input class="input" id="amount" type="number" step="0.01" min="1" placeholder="5.00" /></div>
+      <p style="font-weight:600;margin-bottom:8px;">Payment Method</p>
+      <div id="methods" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;"></div>
+      <button class="btn btn-primary" id="createBtn">Create Payment</button>
+    </div>
+    <div id="payBox" class="hidden panel text-center"></div>
+  </main>
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script>
+    UI.initTheme();
+    if (!UI.requireLogin()) throw 0;
+    UI.refreshUserHeader();
+    let selected = null;
+    let pollTimer = null;
+
+    (async () => {
+      const { data } = await AK.api('/api/payments/methods');
+      const box = document.getElementById('methods');
+      if (!data.aba && !data.bakong) {
+        box.innerHTML = '<div class="panel text-center text-muted" style="grid-column:1/-1">Payment is temporarily unavailable</div>';
+        document.getElementById('createBtn').disabled = true;
+        return;
+      }
+      if (data.aba) box.innerHTML += `<button type="button" class="platform-btn" data-m="aba">ABA KHQR</button>`;
+      if (data.bakong) box.innerHTML += `<button type="button" class="platform-btn" data-m="bakong">Bakong</button>`;
+      box.querySelectorAll('.platform-btn').forEach(b => b.addEventListener('click', () => {
+        box.querySelectorAll('.platform-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        selected = b.dataset.m;
+      }));
+    })();
+
+    document.getElementById('createBtn').addEventListener('click', async () => {
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (!amount || amount <= 0) return UI.toast('Enter amount', 'error');
+      if (!selected) return UI.toast('Select payment method', 'error');
+      if (selected !== 'aba') return UI.toast('Bakong: configure token in admin', 'error');
+      const btn = document.getElementById('createBtn');
+      btn.disabled = true;
+      const { ok, data } = await AK.api('/api/payments/aba/generate', { method: 'POST', body: { amount } });
+      btn.disabled = false;
+      if (!ok) return UI.toast(data.error || 'Failed', 'error');
+      document.getElementById('formBox').classList.add('hidden');
+      const pay = document.getElementById('payBox');
+      pay.classList.remove('hidden');
+      pay.innerHTML = `
+        <p class="text-muted">Waiting for payment…</p>
+        <p style="font-size:24px;font-weight:800;color:var(--primary);">${UI.formatMoney(data.amount)}</p>
+        ${data.cardImage || data.qrImage ? `<img src="${data.cardImage||data.qrImage}" style="max-width:260px;border-radius:12px;margin:12px auto;" />` : ''}
+        ${data.payUrl ? `<a class="btn btn-secondary mt-2" href="${data.payUrl}" target="_blank">Open Payment Page</a>` : ''}
+      `;
+      pollTimer = setInterval(async () => {
+        const r = await AK.api('/api/payments/aba/check', {
+          method: 'POST',
+          body: { transactionId: data.transactionId, paymentId: data.paymentId },
+        });
+        if (r.data.paid) {
+          clearInterval(pollTimer);
+          UI.toast('Payment Successful', 'success');
+          pay.innerHTML = `<p style="color:var(--success);font-weight:700;font-size:18px;">Payment Successful</p>
+            <p>+${UI.formatMoney(r.data.amount)}</p>
+            <p class="text-muted">Balance: ${UI.formatMoney(r.data.balance)}</p>
+            <a class="btn btn-primary mt-4" href="/dashboard.html">Done</a>`;
+          UI.refreshUserHeader();
+        } else if (r.data.status === 'EXPIRED') {
+          clearInterval(pollTimer);
+          pay.innerHTML = `<p style="color:var(--danger);">Payment Expired</p><a class="btn btn-primary" href="/add-balance.html">Try Again</a>`;
+        }
+      }, 4000);
+    });
+  </script>
+</body>
+</html>

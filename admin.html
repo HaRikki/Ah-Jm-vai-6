@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — AngKer SMM</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <a href="/dashboard.html" style="color:var(--text);padding:6px;">←</a>
+    <img class="logo" src="/images/logo-ak.png" alt="" />
+    <div style="font-weight:700;">Admin Panel</div>
+  </header>
+  <main class="container">
+    <a class="panel" href="/admin-providers.html" style="display:block;margin-bottom:10px;">
+      <strong>Providers / API Keys</strong>
+      <div class="text-muted">Add multiple websites, balance, enable for user orders</div>
+    </a>
+    <a class="panel" href="/admin-payments.html" style="display:block;margin-bottom:10px;">
+      <strong>Payments (ABA / Bakong)</strong>
+      <div class="text-muted">Enable methods, API keys (server-side)</div>
+    </a>
+  </main>
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script>
+    UI.initTheme();
+    if (!UI.requireLogin()) throw 0;
+    const u = AK.getUser();
+    if (!u || !['admin','superadmin','manager'].includes(u.role)) {
+      UI.toast('Forbidden', 'error');
+      location.href = '/dashboard.html';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "angker-smm-html",
+  "version": "2.0.0",
+  "description": "AngKer SMM - HTML/CSS/JS Frontend + Express Backend",
+  "main": "backend/server.js",
+  "scripts": {
+    "dev": "node backend/server.js",
+    "start": "NODE_ENV=production node backend/server.js",
+    "db:generate": "prisma generate --schema=database/schema.prisma",
+    "db:push": "prisma db push --schema=database/schema.prisma",
+    "db:seed": "node backend/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}

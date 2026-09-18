@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Providers — Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <a href="/admin.html" style="color:var(--text);padding:6px;">←</a>
+    <div style="font-weight:700;flex:1;">API Keys / Websites</div>
+    <button class="btn btn-primary" style="width:auto;padding:8px 12px;" id="addBtn">+ Add</button>
+  </header>
+  <main class="container">
+    <div id="form" class="panel hidden" style="margin-bottom:12px;">
+      <div class="field"><label>Name</label><input class="input" id="name" /></div>
+      <div class="field"><label>API URL</label><input class="input" id="apiUrl" placeholder="https://.../api/v2" /></div>
+      <div class="field"><label>API Key</label><input class="input" id="apiKey" /></div>
+      <button class="btn btn-primary" id="saveBtn">Save</button>
+    </div>
+    <div id="list"></div>
+  </main>
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script>
+    UI.initTheme();
+    if (!UI.requireLogin()) throw 0;
+    document.getElementById('addBtn').onclick = () => document.getElementById('form').classList.toggle('hidden');
+    document.getElementById('saveBtn').onclick = async () => {
+      const { ok, data } = await AK.api('/api/admin/providers', {
+        method: 'POST',
+        body: {
+          action: 'create',
+          name: document.getElementById('name').value,
+          apiUrl: document.getElementById('apiUrl').value,
+          apiKey: document.getElementById('apiKey').value,
+        },
+      });
+      if (!ok) return UI.toast(data.error || 'Failed', 'error');
+      UI.toast('Provider added', 'success');
+      load();
+    };
+    async function load() {
+      const { ok, data } = await AK.api('/api/admin/providers');
+      if (!ok) return UI.toast(data.error || 'Failed', 'error');
+      document.getElementById('list').innerHTML = (data.providers || []).map(p => `
+        <div class="panel" style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;">
+            <strong>${p.name}</strong>
+            <span class="status-badge ${p.userEnabled?'status-completed':'status-failed'}">${p.userEnabled?'User ON':'User OFF'}</span>
+          </div>
+          <div class="text-muted" style="font-family:monospace;font-size:11px;">${p.apiUrl}</div>
+          <div class="text-muted">Key: ${p.apiKeyMasked}</div>
+          <div style="background:#F0F5FF;border-radius:12px;padding:10px;margin:10px 0;">
+            <div class="text-muted">API Balance</div>
+            <div style="font-size:20px;font-weight:800;color:var(--primary);">${UI.formatMoney(p.balance)} ${p.currency||'USD'}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-secondary" style="width:auto;" onclick="syncBal('${p.id}')">Sync Balance</button>
+            <button class="btn btn-secondary" style="width:auto;" onclick="toggleUser('${p.id}', ${!p.userEnabled})">${p.userEnabled?'Disable User':'Enable User'}</button>
+          </div>
+        </div>
+      `).join('') || '<div class="panel text-muted text-center">No providers</div>';
+    }
+    window.syncBal = async (id) => {
+      const { data } = await AK.api('/api/admin/providers', { method: 'POST', body: { action: 'sync_balance', id } });
+      if (data.ok) UI.toast('Balance: ' + data.balance, 'success');
+      else UI.toast(data.error || 'Failed', 'error');
+      load();
+    };
+    window.toggleUser = async (id, userEnabled) => {
+      await AK.api('/api/admin/providers', { method: 'POST', body: { action: 'set_for_users', id, userEnabled } });
+      load();
+    };
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>New Order — AngKer SMM</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <button id="menuBtn" class="btn" style="background:transparent;padding:6px;color:var(--text);">☰</button>
+    <img class="logo" src="/images/logo-ak.png" alt="" />
+    <div><div id="headerName" style="font-weight:700;font-size:14px;">User</div><div class="text-muted">New order</div></div>
+    <div class="balance-pill"><span id="headerBalance">$0.00</span></div>
+  </header>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <aside id="sidebar" class="sidebar">
+    <div style="padding:16px;font-weight:700;">AngKer SMM</div>
+    <a class="menu-item" href="/dashboard.html">Dashboard</a>
+    <a class="menu-item active" href="/new-order.html">New order</a>
+    <a class="menu-item" href="/orders.html">Orders</a>
+    <a class="menu-item" href="/add-balance.html">Add funds</a>
+    <a class="menu-item" href="#" id="logoutBtn">Logout</a>
+  </aside>
+
+  <main class="container">
+    <div class="platform-grid" id="platforms">
+      <button type="button" class="platform-btn active" data-id="all">Everything</button>
+      <button type="button" class="platform-btn" data-id="tiktok">TikTok</button>
+      <button type="button" class="platform-btn" data-id="facebook">Facebook</button>
+      <button type="button" class="platform-btn" data-id="facebook_live">Facebook Live</button>
+      <button type="button" class="platform-btn" data-id="youtube">YouTube</button>
+      <button type="button" class="platform-btn" data-id="telegram">Telegram</button>
+    </div>
+
+    <div class="field">
+      <input class="input" id="search" placeholder="Search services..." />
+    </div>
+    <div class="field">
+      <label>Category</label>
+      <select class="input" id="category"></select>
+    </div>
+    <div class="field">
+      <label>Service</label>
+      <select class="input" id="service"><option value="">Select a service...</option></select>
+    </div>
+
+    <div id="orderForm" class="hidden">
+      <div class="panel text-muted" style="margin-bottom:12px;font-size:12px;" id="serviceInfo"></div>
+      <div class="field"><label>Link</label><input class="input" id="link" type="url" placeholder="https://..." /></div>
+      <div class="field">
+        <label>Quantity</label>
+        <input class="input" id="quantity" type="number" />
+        <div class="text-muted mt-2" id="qtyHint"></div>
+      </div>
+      <div class="field"><label>Average time</label><input class="input" id="avgTime" readonly /></div>
+      <div class="field"><label>Charge</label><input class="input" id="charge" readonly style="font-weight:700;color:var(--primary);font-size:16px;" /></div>
+      <button class="btn btn-primary" id="submitOrder">Submit</button>
+    </div>
+    <div id="emptyHint" class="panel text-center text-muted">Select a service to continue</div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/orders.js"></script>
+</body>
+</html>

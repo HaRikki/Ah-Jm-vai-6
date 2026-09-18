@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login — AngKer SMM</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="cosmic-bg">
+    <div class="cosmic-inner" style="min-height:100vh;display:flex;flex-direction:column;padding:16px;">
+      <header style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <img src="/images/logo-ak.png" alt="AngKer" width="42" height="42" style="filter:drop-shadow(0 0 12px rgba(255,200,50,0.4))" />
+        <span style="color:#fff;font-weight:700;font-size:18px;">ANGKER SMM</span>
+      </header>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding-top:8px;">
+        <img src="/images/logo-ak.png" alt="" width="88" height="88" style="filter:drop-shadow(0 0 16px rgba(255,200,50,0.5))" />
+        <h1 class="auth-title">SMM service<br/>kings. #1 SMM<br/>Panel online</h1>
+        <p class="auth-sub">Step up your social media game using various SMM services.</p>
+        <div class="auth-card">
+          <form id="loginForm">
+            <div class="field">
+              <label>Username</label>
+              <input class="input" id="email" name="email" required autocomplete="username" />
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input class="input" id="password" type="password" required autocomplete="current-password" />
+            </div>
+            <button class="btn btn-primary" type="submit" id="submitBtn">Sign in</button>
+          </form>
+          <p class="text-center mt-4" style="color:rgba(255,255,255,0.85);font-size:13px;">
+            <a href="/forgot-password.html" style="color:#fff;">Forgot password?</a>
+          </p>
+          <p class="text-center mt-2" style="color:rgba(255,255,255,0.85);font-size:13px;">
+            Do not have an account?
+            <a href="/register.html" style="color:#fff;font-weight:700;">Sign up</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script>
+    UI.initTheme();
+    if (AK.getToken()) location.href = '/dashboard.html';
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+      const { ok, data } = await AK.api('/api/auth/login', {
+        method: 'POST',
+        body: {
+          email: document.getElementById('email').value.trim(),
+          password: document.getElementById('password').value,
+        },
+      });
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+      if (!ok) {
+        UI.toast(data.error || 'Login failed', 'error');
+        return;
+      }
+      AK.setAuth(data.token, data.user);
+      UI.toast('Login successful', 'success');
+      location.href = '/dashboard.html';
+    });
+  </script>
+</body>
+</html>
